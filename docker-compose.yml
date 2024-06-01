@@ -1,0 +1,31 @@
+version: '3.9'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV_FILE: ${ENV_FILE} # Pasar el archivo .env correcto
+    ports:
+      - "8080:8080"
+    env_file:
+      - ${ENV_FILE} # Usar variable de entorno para especificar el archivo .env
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:8.0
+    env_file:
+      - ${ENV_FILE} # Usar variable de entorno para especificar el archivo .env
+    ports:
+      - "33068:3306"  # Mapea el puerto 36062 de tu máquina host al puerto 3306 del contenedor
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql # Mapea el directorio de datos de MySQL al volumen
+      - ./mysql-custom.cnf:/etc/mysql/conf.d/mysql-custom.cnf
+
+volumes:
+  mysql_data: # Define el volumen mysql_data
